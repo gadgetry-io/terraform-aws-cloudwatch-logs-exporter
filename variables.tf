@@ -5,7 +5,7 @@ variable "name" {
 
 variable "exporter_version" {
   description = "Version of the cloudwatch-exporter to deploy. Defaults to the latest version available"
-  default     = "v0.0.1"
+  default     = "0.0.2"
 }
 
 variable "log_group" {
