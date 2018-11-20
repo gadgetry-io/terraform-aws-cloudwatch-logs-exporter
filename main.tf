@@ -1,7 +1,6 @@
 resource "null_resource" "download_lambda_zip" {
   triggers {
     version = "${var.exporter_version}"
-    taint   = "x"
   }
 
   provisioner "local-exec" {
@@ -35,6 +34,10 @@ resource "aws_cloudwatch_event_target" "lambda" {
   target_id = "${aws_lambda_function.cloudwatch_export.function_name}"
   rule      = "${aws_cloudwatch_event_rule.cloudwatch_export.name}"
   arn       = "${aws_lambda_function.cloudwatch_export.arn}"
+
+  input = <<EOF
+{"s3_bucket":"${var.s3_bucket}", "s3_prefix":"${var.s3_prefix}", "log_group":"${var.log_group}"}
+EOF
 }
 
 resource "aws_iam_role" "cloudwatch_export" {
