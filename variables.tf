@@ -3,18 +3,17 @@ variable "name" {
   default     = "cloudwatch-export"
 }
 
-variable "exporter_version" {
-  description = "Version of the cloudwatch-exporter to deploy. Defaults to the latest version available"
-  default     = "0.0.2"
-}
-
 variable "log_group" {
   description = "Name of Cloudwatch Log Group to export to S3"
-  default     = "default"
 }
 
 variable "s3_bucket" {
   description = "bucket logs will be put into"
+}
+
+variable "exporter_version" {
+  description = "Version of the cloudwatch-exporter to deploy. Defaults to the latest version available"
+  default     = "0.0.2"
 }
 
 variable "s3_prefix" {
