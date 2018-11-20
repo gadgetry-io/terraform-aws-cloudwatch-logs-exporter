@@ -1,16 +1,17 @@
 resource "null_resource" "download_lambda_zip" {
   triggers {
     version = "${var.exporter_version}"
+    taint   = "x"
   }
 
   provisioner "local-exec" {
-    command = "curl -L -o ${path.module}/cloudwatch-export-${var.exporter_version}.zip https://justmiles.keybase.pub/artifacts/cloudwatch-export/v0.0.1.zip?dl=1"
+    command = "curl -L -o ${path.module}/lambda-cloudwatch-export_${var.exporter_version}_linux_amd64.zip https://github.com/gadgetry-io/lambda-cloudwatch-export/releases/download/v${var.exporter_version}/lambda-cloudwatch-export_${var.exporter_version}_linux_amd64.zip"
   }
 }
 
 resource "aws_lambda_function" "cloudwatch_export" {
   function_name = "${var.name}"
-  filename      = "${path.module}/cloudwatch-export-${null_resource.download_lambda_zip.triggers.version}.zip"
+  filename      = "${path.module}/lambda-cloudwatch-export_${var.exporter_version}_linux_amd64.zip"
   role          = "${aws_iam_role.cloudwatch_export.arn}"
   handler       = "cloudwatch-export"
   runtime       = "go1.x"
@@ -26,11 +27,19 @@ resource "aws_lambda_function" "cloudwatch_export" {
 
 resource "aws_cloudwatch_event_rule" "cloudwatch_export" {
   name                = "${aws_lambda_function.cloudwatch_export.function_name}"
+  description         = "CloudWatch log exports for ${var.log_group}"
   schedule_expression = "${var.schedule}"
+}
+
+resource "aws_cloudwatch_event_target" "lambda" {
+  target_id = "${aws_lambda_function.cloudwatch_export.function_name}"
+  rule      = "${aws_cloudwatch_event_rule.cloudwatch_export.name}"
+  arn       = "${aws_lambda_function.cloudwatch_export.arn}"
 }
 
 resource "aws_iam_role" "cloudwatch_export" {
   name               = "${var.name}"
+  description        = "Lambda role for CloudWatch Log exports"
   assume_role_policy = "${data.aws_iam_policy_document.cloudwatch_export_assume_role.json}"
 }
 
