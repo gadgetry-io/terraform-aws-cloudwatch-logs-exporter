@@ -40,6 +40,14 @@ resource "aws_cloudwatch_event_target" "lambda" {
 EOF
 }
 
+resource "aws_lambda_permission" "events" {
+  statement_id  = "${aws_lambda_function.cloudwatch_export.function_name}"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.cloudwatch_export.function_name}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.cloudwatch_export.arn}"
+}
+
 resource "aws_iam_role" "cloudwatch_export" {
   name               = "${var.name}"
   description        = "Lambda role for CloudWatch Log exports"
@@ -59,9 +67,8 @@ data "aws_iam_policy_document" "cloudwatch_export_assume_role" {
 }
 
 resource "aws_iam_role_policy" "cloudwatch_export" {
-  name = "${var.name}"
-  role = "${aws_iam_role.cloudwatch_export.id}"
-
+  name   = "${var.name}"
+  role   = "${aws_iam_role.cloudwatch_export.id}"
   policy = "${data.aws_iam_policy_document.cloudwatch_export_inline.json}"
 }
 
